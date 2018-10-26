@@ -1,5 +1,5 @@
 import unittest
-from tokenizator_generator_krupina import Tokenizer
+from tokenizator_krupina import Tokenizer
 
 class TokenizerTest(unittest.TestCase):
     def setUp(self):
