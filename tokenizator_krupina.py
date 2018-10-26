@@ -39,7 +39,7 @@ class Tokenizer(object):
             # Check if the symbol in question is the end of a word
             if index > -1 and not s.isalpha():
                 # If so, add the token to the list of tokens
-                tokens.append(Token(index, given[index:i]))  
+                tokens.append(Token(index, given[index: i]))  
                 index = -1
             # Check whether the symbol in question is the beginning of a word
             if index == -1 and s.isalpha(): 
@@ -47,7 +47,7 @@ class Tokenizer(object):
         # Check the last symbol of the sequence to see whether it is the end of a word
         # If so, add this word to our list of tokens
         if s.isalpha():
-            tokens.append(Token(index, given[index:i+1]))
+            tokens.append(Token(index, given[index: i + 1]))
         return tokens
 
     def generator_tokenizer(self, given):
@@ -70,7 +70,7 @@ class Tokenizer(object):
         for i, s in enumerate(given):
             # Check if the symbol in question is the end of a word
             if index > -1 and not s.isalpha():
-                token = (Token(index, given[index:i]))  
+                token = (Token(index, given[index: i]))  
                 index = -1
                 yield token
             # Check whether the symbol in question is the beginning of a word
@@ -78,7 +78,7 @@ class Tokenizer(object):
                 index = i
         # Check the last symbol of the sequence to see whether it is the end of a word
         if s.isalpha():
-            token = (Token(index, given[index:i+1]))
+            token = (Token(index, given[index: i + 1]))
         yield token
 
 if __name__ == '__main__':
