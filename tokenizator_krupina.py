@@ -26,7 +26,7 @@ class Tokenizer(object):
         """
         
         if not isinstance(given,str):
-            raise ValueError('Value error')
+            raise ValueError
 
         if not given:
             return []
@@ -58,8 +58,8 @@ class Tokenizer(object):
         :yield: a list of tokens.
         """
         
-        if not isinstance(given,str):
-            raise ValueError('Value error')
+        if not isinstance(given, str):
+            raise ValueError
 
         if not given:
             return
