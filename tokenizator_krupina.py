@@ -55,7 +55,7 @@ class Tokenizer(object):
 
         :param given: a sequence of alphabetical and non-alphabetical symbols.
     
-        :return: a list of tokens.
+        :yield: a list of tokens.
         """
         
         if not isinstance(given,str):
