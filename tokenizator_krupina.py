@@ -93,7 +93,7 @@ class Tokenizer(object):
         # Check the last symbol of the sequence to see whether it is the end of a word
         if s.isalpha():
             token = (Token(index, given[index:i+1]))
-        yield token
+            yield token
 
     def _getType(self,c):
         """This method gets the type of each character in a sequence.
