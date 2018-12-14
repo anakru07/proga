@@ -132,7 +132,7 @@ class Tokenizer(object):
 
             if c_token_type != p_token_type and i>0:
 
-                token = (TypeToken(index, given[index:i], p_token_type))
+                token = TypeToken(index, given[index:i], p_token_type)
 
                 yield token
 
@@ -140,7 +140,7 @@ class Tokenizer(object):
 
             p_token_type = c_token_type
 
-        token = (TypeToken(index, given[index:i+1], p_token_type))
+        token = TypeToken(index, given[index:i+1], p_token_type)
 
         yield token
 
