@@ -138,7 +138,7 @@ class Tokenizer(object):
 
                 index = i
 
-                p_token_type = c_token_type
+            p_token_type = c_token_type
 
         token = (TypeToken(index, given[index:i], p_token_type))
 
