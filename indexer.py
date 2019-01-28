@@ -8,8 +8,8 @@ class Position(object):
         self.beginning = beginning
         self.end = end
 
-    def __eq__(self,obj):
-        return self.beginning == obj.beginning and self.end == obj.end
+    def __eq__(self, obj):
+        return (self.beginning == obj.beginning and self.end == obj.end)
 
     def __repr__(self):
         return '(' + str(self.beginning) + ',' + ' ' + str(self.end) + ')'
@@ -26,7 +26,7 @@ class Position_with_lines(object):
                 self.line == obj.line)
 
     def __repr__(self):
-        return '(' + str(self.start) + ',' + ' ' + str(self.end) + \
+        return '(' + str(self.beginning) + ',' + ' ' + str(self.end) + \
              ',' + ' ' + str(self.line) + ')'
 
 class Indexer(object):
