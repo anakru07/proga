@@ -67,10 +67,10 @@ class Indexer(object):
             raise FileNotFoundError
 
         for linenumber, line in enumerate(file):
-            for token in tokenizer.generator_with_types(file.read()):
-                i = token.position + len(token.string)
-                self.database.setdefault(token.string, {}).setdefault(filename, []).append(
-                    Position_with_lines(token.position, i, line)
+            for token in tokenizer.generator_with_types(line):
+                i = token.position + len(token.word)
+                self.database.setdefault(token.word, {}).setdefault(filename, []).append(
+                    Position_with_lines(token.position, i, linenumber)
                 )
         file.close()
         self.database.sync()
