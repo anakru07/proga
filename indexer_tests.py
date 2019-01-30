@@ -15,7 +15,7 @@ class IndexerTest(unittest.TestCase):
             if "text.txt" in os.listdir(os.getcwd()):
                 os.remove("text.txt")
 
-    def wrong_input(self):
+    def test_wrong_input(self):
         with self.assertRaises(ValueError):
             self.indexer.index("i am not a document")
 
@@ -23,7 +23,7 @@ class IndexerTest(unittest.TestCase):
         with self.assertRaises(FileNotFoundError): 
             self.indexer.index("текст.txt")
             
-    def one_word(self):
+    def test_one_word(self):
         test = open("text.txt", 'w' )
         test.write("programming")
         test.close()
@@ -34,7 +34,7 @@ class IndexerTest(unittest.TestCase):
         }
         self.assertEqual(words1, words2)
 
-    def two_words(self):
+    def test_two_words(self):
         test = open("text.txt", 'w' )
         test.write("my test")
         test.close()
@@ -46,7 +46,7 @@ class IndexerTest(unittest.TestCase):
         }
         self.assertEqual(words1, words2)
 
-    def two_identical_words(self):
+    def test_two_identical_words(self):
         test = open("text.txt", 'w' )
         test.write("my my")
         test.close()
@@ -58,7 +58,7 @@ class IndexerTest(unittest.TestCase):
         }
         self.assertEqual(words1, words2)
                   
-    def two_files(self):
+    def test_two_files(self):
         test = open("text.txt", 'w' )
         test.write("test")
         test.close()
@@ -75,7 +75,7 @@ class IndexerTest(unittest.TestCase):
         }
         self.assertEqual(words1, words2)
 
-    def multiple_lines(self):
+    def test_multiple_lines(self):
         test = open("text.txt", 'w' )
         test.write("testing\nground")
         test.close()
