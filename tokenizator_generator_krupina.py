@@ -93,7 +93,7 @@ class Tokenizer(object):
         # Check the last symbol of the sequence to see whether it is the end of a word
         if s.isalpha():
             token = (Token(index, given[index:i+1]))
-            yield token
+        yield token
 
     def _getType(self,c):
         """This method gets the type of each character in a sequence.
@@ -103,15 +103,15 @@ class Tokenizer(object):
         space (s), punctuation (p), other (o).
         """
 
-        mycategory = category (c)
+        ch_category = category (c)
 
-        if mycategory [0] == "L":
+        if ch_category [0] == "L":
             return "a" #alphabetical
-        elif mycategory [0] == "N":
+        elif ch_category [0] == "N":
             return "d" #digit
-        elif mycategory [0] == "Z":
+        elif ch_category [0] == "Z":
            return "s" #space or separator
-        elif mycategory [0] == "P":
+        elif ch_category [0] == "P":
            return "p" #punctuation
         else: return "o" #other
 
@@ -123,30 +123,24 @@ class Tokenizer(object):
         """
 
         p_token_type = ""
-        
         index = 0
-
         for i, c in enumerate(given):
-
             c_token_type = self._getType(c)
-
             if c_token_type != p_token_type and i>0:
-
                 token = TypeToken(index, given[index:i], p_token_type)
-
                 yield token
-
                 index = i
-
             p_token_type = c_token_type
-
-        token = TypeToken(index, given[index:i+1], p_token_type)
-
+            token = TypeToken(index, given[index:i+1], p_token_type)        
         yield token
 
     def tokenize_with_types(self, given):
-
         return list(self.generator_with_types(given))
+    
+    def generate_alpha_and_digits(self, given):
+        for token in self.generator_with_types(given):
+            if (token.typ == 'a') or (token.typ == 'd'):
+                yield token
 
 if __name__ == '__main__':
 
