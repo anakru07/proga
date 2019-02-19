@@ -1,7 +1,7 @@
 import unittest
 import os
 import shelve
-from indexer_krupina import Indexer
+from indexer_krupina import Indexer, Position, Position_with_lines
 
 class IndexerTest(unittest.TestCase):
     def setUp(self):
