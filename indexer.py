@@ -1,5 +1,5 @@
-import shelve
 import os
+import shelve
 from tokenizator_generator_krupina import Tokenizer
 
 class Position(object):
