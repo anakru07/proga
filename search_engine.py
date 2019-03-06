@@ -57,36 +57,9 @@ def main():
     searching = SearchEngine('database')
     result = searching.multiple_tokens_search('this is')
     print(result)
-    del searching
-
+    for filename in os.listdir(os.getcwd()):
+        if filename == 'database' or filename.startswith('database.'):
+            os.remove(filename)
 
 if __name__=='__mailn__':
     main()
-    
-    
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
