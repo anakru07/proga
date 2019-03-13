@@ -61,5 +61,5 @@ def main():
         if filename == 'database' or filename.startswith('database.'):
             os.remove(filename)
 
-if __name__=='__mailn__':
+if __name__=='__main__':
     main()
