@@ -3,11 +3,11 @@ import shelve
 import indexer
 from tokenizator_generator_krupina import Tokenizer
 
-class SearchEngime(object):
+class SearchEngine(object):
     
-    def __init__(self.databasename):
+    def __init__(self, databasename):
         
-        self.database = shelve.open(database_name, writeback=True)
+        self.database = shelve.open(databasename, writeback=True)
 
     def single_token_search(self, query):
         
@@ -31,15 +31,15 @@ class SearchEngime(object):
         for token in search_tokens:
             if token.word not in self.database:
                 return{}
-            search_results.append(self.one_token_search(token.word)))           
+            search_results.append(self.single_token_search(token.word))
         files = set(search_results[0])        
         for result in search_results[1:]:
-            files &= set(file)
+            files &= set(result)
         final_result = {}
         for file in files:
             for result in search_results:
                 final_result.setdefault(file,[]).extend(
-                    self.database[token.word][file])
+                    result[file])
         return final_result
 
         def __del__(self):
@@ -53,13 +53,13 @@ def main():
     file.close()
     indexing.indexing_with_lines('text.txt')
     os.remove('text.txt')
-    indexing.closeDatabase()
     searching = SearchEngine('database')
     result = searching.multiple_tokens_search('this is')
     print(result)
+    del searching
     for filename in os.listdir(os.getcwd()):
         if filename == 'database' or filename.startswith('database.'):
             os.remove(filename)
-
+            
 if __name__=='__main__':
     main()
