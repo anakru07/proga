@@ -38,7 +38,7 @@ class Indexer(object):
         for token in tokenizer.generate_alpha_and_digits(file.read()):
         #for token in tokenizer.generator_with_types(file.read()):
             i = token.position + len(token.word)
-            self.database.setdefault(token.string, {}).setdefault(filename, []).append(
+            self.database.setdefault(token.word, {}).setdefault(filename, []).append(
                 Position(token.position, i)
             )
         file.close()
