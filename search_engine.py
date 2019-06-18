@@ -13,7 +13,7 @@ class ContextWindow(object):
         self.end = end
         
     @classmethod
-    def get_from_file(cls, filename, position, context_size):
+    def get_from_file(cls, filename, position, context_size=3):
         t = Tokenizer()
         if not (isinstance(filename, str)
                 and isinstance(position, Position_with_lines)
@@ -29,18 +29,21 @@ class ContextWindow(object):
         
         line = line.strip("\n")
         positions = [position]        
-        right = line[position.beginning:]
-        left = line[:position.end:-1]
-
-        for i, token in enumerate(t.generate_alpha_and_digits(left)):
-            if i == context_size:
-                break
-        beginning = position.end - token.position - len(token.word)
-        for i, token in enumerate(t.generate_alpha_and_digits(right)):
-            if i == context_size:
-                break
-        end = position.beginning + token.position + len(token.word)
-        return cls(line, positions, beginning, end)
+        right = line[position.end:]
+        left = line[:position.beginning]
+        sum_len_left, sum_len_right = 0, 0
+        for i in range(context_size):
+            try:
+                sum_len_left += len(left.split()[-context_size:][i]) + 1
+            except IndexError:
+                pass
+            try:
+                sum_len_right += len(right.split()[:context_size][i]) + 1
+            except IndexError:
+                pass
+        beginning = max(0, position.beginning - sum_len_left)
+        end = min(len(line), position.end + sum_len_right)
+        return cls(positions, line[beginning:end], beginning, end)
 
     def check_crossing(self, con):
         return (self.beginning <= con.end and
@@ -50,7 +53,7 @@ class ContextWindow(object):
     def join_contexts(self, con):
         for position in con.positions:
             if position not in self.positions:
-                self.position.append(position)
+                self.positions.append(position)
         self.beginning = min(self.beginning, con.beginning)
         self.end = max(self.end, con.end)
 
@@ -65,19 +68,18 @@ class ContextWindow(object):
         last_obj = last.match(left) 
         first_obj = first.match(right) 
         if left and last_obj: 
-            self.start -= last_obj.start() 
+            self.beginning -= last_obj.start()
         if right and first_obj: 
             self.end += first_obj.start() + 1
 
     def __eq__(self, con):
-        return ((self.position == con.position) and
+        return ((self.positions == con.position) and
                 (self.line == con.line) and
                 (self.beginning == con.beginning) and
                 (self.end == con.end))
 
     def __repr__(self):
-        return str(self.positions)+ ', ' + str(self.beginning)+ ', ' \
-               + str(self.end)+ ', ' + self.line
+        return self.line
         
 class SearchEngine(object):
     
@@ -114,8 +116,7 @@ class SearchEngine(object):
         final_result = {}
         for file in files:
             for result in search_results:
-                final_result.setdefault(file,[]).extend(
-                    result[file])
+                final_result[file] = final_result.setdefault(file, []) + result[file]
         return final_result
 
     def get_window(self, input_dict, context_size=3):
@@ -151,14 +152,14 @@ class SearchEngine(object):
             
         return contexts_dict
 
-    def search_to_context(self, query, context_size=3):
+    def search_to_context(self, query, context_size):
 
         positions_dict = self.multiple_tokens_search(query)
         context_dict = self.get_window(positions_dict, context_size)
         return context_dict
 
 
-    def search_to_sentence(self, query, context_size=3):
+    def search_to_sentence(self, query, context_size):
 
         context_dict = self.search_to_context(query, context_size)
         for contexts in context_dict.values():
@@ -175,14 +176,17 @@ class SearchEngine(object):
             if (filename.startswith('text')):
                 os.remove(filename)
 
+
 def main():
     indexing = indexer.Indexer('database')
-    with open('text.txt', 'w') as test_file_1: 
-        test_file_1.write('Завтра обещают дождь и сильный ветер')
+    with open('text.txt', 'w') as test_file_1:
+        test_file_1.write('Огромный зал на первом этаже обращен окнами на север, точно художественная студия. На дворе лето, в зале и вовсе тропически жарко, но по-зимнему холоден и водянист свет, что жадно течет в эти окна в поисках живописно драпированных манекенов или нагой натуры, пусть блеклой и зябко-пупырчатой, – и находит лишь никель, стекло, холодно блестящий фарфор лаборатории')
+
     indexing.indexing_with_lines('text.txt')
     searching = SearchEngine('database')
-    result = searching.search_to_context('и')
+    result = searching.search_to_context('первом', 6)
     print(result)
+
     del searching
     for filename in os.listdir(os.getcwd()):
         if filename == 'database' or filename.startswith('database.'):
