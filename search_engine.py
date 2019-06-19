@@ -23,14 +23,7 @@ class ContextWindow(object):
         self.end = end
         
     @classmethod
-    def get_from_file(cls, filename, position, context_size=3):
-        """
-        This method yields contexts from a file 
-        @param
-        @param
-        @param
-        @param
-        """
+    def get_from_file(cls, filename, position, context_size):
         t = Tokenizer()
         if not (isinstance(filename, str)
                 and isinstance(position, Position_with_lines)
