@@ -5,17 +5,26 @@ from indexer import Position_with_lines
 import re
 from tokenizator_generator_krupina import Tokenizer
 
+
 class ContextWindow(object):
     """
+
     This class stores information about context windows
+
     """
     def __init__(self, positions, line, beginning, end):
         """
+
         This method creates an instance of ContextWindow class
+
         @param position: a list of positions of the words we search for
+
         @param line: the text of the line with the word
+
         @param start: position of the first character of the context window
+
         @param end: position after the last character of the context window
+
         """
         self.positions = positions
         self.line = line
@@ -25,16 +34,21 @@ class ContextWindow(object):
     @classmethod
     def get_from_file(cls, filename, position, context_size=3):
         """
+
         This method yields contexts from a file 
+
         @param filename: the name of the file we are working with
+
         @param position: position of the word which contexts we are trying to find 
+
         @param context_size: size of the context window
+
         """
-        t = Tokenizer()
+
         if not (isinstance(filename, str)
                 and isinstance(position, Position_with_lines)
                 and isinstance(context_size, int)):
-            raise ValueError (filename, position, context_size)
+            raise ValueError(filename, position, context_size)
 
         with open(filename) as f:
             for i, line in enumerate(f):
@@ -44,22 +58,17 @@ class ContextWindow(object):
             raise ValueError('Wrong line number')
         
         line = line.strip("\n")
-        positions = [position]        
+        positions = [position]
+
         right = line[position.end:]
         left = line[:position.beginning]
-        sum_len_left, sum_len_right = 0, 0
-        for i in range(context_size):
-            try:
-                sum_len_left += len(left.split()[-context_size:][i]) + 1
-            except IndexError:
-                pass
-            try:
-                sum_len_right += len(right.split()[:context_size][i]) + 1
-            except IndexError:
-                pass
+
+        sum_len_left = sum(map(len, left.split()[-context_size:])) + context_size
+        sum_len_right = sum(map(len, right.split()[:context_size])) + context_size
+
         beginning = max(0, position.beginning - sum_len_left)
         end = min(len(line), position.end + sum_len_right)
-        return cls(positions, line[beginning:end], beginning, end)
+        return cls(positions, line, beginning, end)
 
     def check_crossing(self, con):
         """
@@ -86,20 +95,35 @@ class ContextWindow(object):
         """
         Expanding the boundaries of the context window to a sentence
         """
-        first = re.compile(r'[.!?]\s[A-ZА-Яa-zа-я]')
-        last = re.compile(r'[A-ZА-Яa-zа-я]\s[.!?]')
-        right = self.line[self.end:]
-        left = self.line[:self.beginning+1][::-1]    
+
+        end_sent = re.compile(r'[.!?]\s[A-ZА-Яa-zа-я]')
+        right = self.line[self.positions[0].end:]
+        left = self.line[:self.positions[0].beginning]
+        first_obj = end_sent.search(right)
+        last_obj = end_sent.search(left)
+
         if left:
-            try:
-                self.beginning = self.beginning - last.search(left).start()
-            except:
-                pass
+            if last_obj:
+                self.beginning = last_obj.end()-1
+            else:
+                self.beginning = 0
         if right:
-            try:
-                self.end += first.search(right).start() + 1
-            except:
-                pass
+            if first_obj:
+                self.end = self.positions[0].end + first_obj.start() + 1
+            else:
+                self.end = len(self.line)
+
+    def highlight(self):
+        """
+        Highlights query words in the output
+        """
+        highlighted = self.line[self.beginning:self.end]
+        for pos in self.positions[::-1]:
+            end = pos.end - self.beginning
+            start = pos.beginning - self.beginning
+            highlighted = highlighted[:end] + '</B>' + highlighted[end:]
+            highlighted = highlighted[:start] + '<B>' + highlighted[start:]
+        return highlighted
 
     def __eq__(self, con):
         """
@@ -112,8 +136,9 @@ class ContextWindow(object):
                 (self.end == con.end))
 
     def __repr__(self):
-        return self.line
-        
+        return self.line[self.beginning:self.end]
+
+
 class SearchEngine(object):
     """
     A search engine for finding certain tokens or groups of tokens in a database
@@ -124,7 +149,6 @@ class SearchEngine(object):
         Creates an instance of the class SearchEngine
         @param databasename: the name of the database that is going to be used for searching in it
         """
-        
         self.database = shelve.open(databasename, writeback=True)
 
     def single_token_search(self, query):
@@ -202,7 +226,7 @@ class SearchEngine(object):
                         contexts_dict.setdefault(f, []).append(previous_context)
                     previous_context = context
             contexts_dict.setdefault(f, []).append(previous_context)
-            
+
         return contexts_dict
 
     def search_to_context(self, query, context_size):
@@ -214,34 +238,49 @@ class SearchEngine(object):
         context_dict = self.get_window(positions_dict, context_size)
         return context_dict
 
-
     def search_to_sentence(self, query, context_size):
         """
         This method is similar to the previous one, but now contexts windows are full sentences
         """
         context_dict = self.search_to_context(query, context_size)
+        sentence_dict = self.join_windows(context_dict)
         for contexts in context_dict.values():
             for context in contexts:
                 context.expand_context()
-        sentence_dict = self.join_windows(context_dict)
         return sentence_dict
 
-    def closeDatabase(self):
+    def search_to_highlight(self, query, size=3):
+        """
+        Also searching in the database, but in the result query words are highlighted
+        """
+        sentence_dict = self.search_to_context(query, context_size=3)
+        quote_dict = {}
+        for f, conts in sentence_dict.items():
+            for cont in conts:
+                quote_dict.setdefault(f, []).append(cont.highlight())
+        return quote_dict
+
+    def close_database(self):
         self.database.close()
         for filename in os.listdir(os.getcwd()):
             if (filename.startswith('database.')):
                 os.remove(filename)
             if (filename.startswith('text')):
                 os.remove(filename)
-                
+
+
 def main():
     indexing = indexer.Indexer('database')
     with open('text.txt', 'w') as test_file_1:
-        test_file_1.write('Огромный зал на первом этаже обращен окнами на север, точно художественная студия. На дворе лето, в зале и вовсе тропически жарко, но по-зимнему холоден и водянист свет, что жадно течет в эти окна в поисках живописно драпированных манекенов или нагой натуры, пусть блеклой и зябко-пупырчатой, – и находит лишь никель, стекло, холодно блестящий фарфор лаборатории')
+        test_file_1.write('Огромный зал на первом этаже обращен окнами на север, точно художественная студия. '
+                          'На дворе лето, в зале и вовсе тропически жарко, но по-зимнему холоден и водянист свет, '
+                          'что жадно течет в эти окна в поисках живописно драпированных манекенов или нагой натуры, '
+                          'пусть блеклой и зябко-пупырчатой, – и находит лишь никель, стекло, холодно блестящий фарфор '
+                          'лаборатории')
 
     indexing.indexing_with_lines('text.txt')
     searching = SearchEngine('database')
-    result = searching.search_to_context('первом', 6)
+    result = searching.search_to_highlight('зал вовсе')
     print(result)
 
     del searching
