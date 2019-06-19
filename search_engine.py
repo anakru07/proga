@@ -7,15 +7,23 @@ from tokenizator_generator_krupina import Tokenizer
 
 class ContextWindow(object):
     """
+
     This class stores information about context windows
+
     """
     def __init__(self, positions, line, beginning, end):
         """
+
         This method creates an instance of ContextWindow class
-        @param position: list of positions of the words we search for
-        @param line: text of the line with the word
+
+        @param position: a list of positions of the words we search for
+
+        @param line: the text of the line with the word
+
         @param start: position of the first character of the context window
+
         @param end: position after the last character of the context window
+
         """
         self.positions = positions
         self.line = line
@@ -23,7 +31,18 @@ class ContextWindow(object):
         self.end = end
         
     @classmethod
-    def get_from_file(cls, filename, position, context_size):
+    def get_from_file(cls, filename, position, context_size=3):
+        """
+
+        This method yields contexts from a file 
+
+        @param filename: the name of the file we are working with
+
+        @param position: position of the word which contexts we are trying to find 
+
+        @param context_size: size of the context window
+
+        """
         t = Tokenizer()
         if not (isinstance(filename, str)
                 and isinstance(position, Position_with_lines)
@@ -56,11 +75,20 @@ class ContextWindow(object):
         return cls(positions, line[beginning:end], beginning, end)
 
     def check_crossing(self, con):
+        """
+        This method is meant to find if there is any overlapping of
+        the context windows
+        @param con: the context we are checking
+        """
         return (self.beginning <= con.end and
                 self.end >= con.beginning and
                 con.line == self.line)
     
     def join_contexts(self, con):
+        """
+        A method for combining overlapping contexts
+        @param con: the context that is to be combined with
+        """
         for position in con.positions:
             if position not in self.positions:
                 self.positions.append(position)
@@ -68,9 +96,12 @@ class ContextWindow(object):
         self.end = max(self.end, con.end)
 
     def expand_context(self):
+        """
+        Expanding the boundaries of the context window to a sentence
+        """
         
         first = re.compile(r'[.!?]\s[A-ZА-Яa-zа-я]')
-        last = re.compile(r'[A-ZА-Яa-zа-я]\s[.!?]')
+        last = re.compile(r'[A-ZА-Яa-zа-я][.!?]\s')
 
         right = self.line[self.end:]
         left = self.line[:self.beginning+1:-1]
@@ -83,6 +114,10 @@ class ContextWindow(object):
             self.end += first_obj.start() + 1
 
     def __eq__(self, con):
+        """
+        Checking if two context windows are equal
+        @param con: the context window to compare
+        """
         return ((self.positions == con.position) and
                 (self.line == con.line) and
                 (self.beginning == con.beginning) and
@@ -92,13 +127,23 @@ class ContextWindow(object):
         return self.line
         
 class SearchEngine(object):
+    """
+    A search engine for finding certain tokens or groups of tokens in a database
+    """
     
     def __init__(self, databasename):
+        """
+        Creates an instance of the class SearchEngine
+        @param databasename: the name of the database that is going to be used for searching in it
+        """
         
         self.database = shelve.open(databasename, writeback=True)
 
     def single_token_search(self, query):
-        
+        """
+        A method of searching for only one token
+        @param query: the word that is to be searched for
+        """        
         if not isinstance(query, str):
             raise TypeError        
         if query not in self.database:
@@ -108,7 +153,10 @@ class SearchEngine(object):
         return self.database[query]
 
     def multiple_tokens_search(self, query):
-        
+        """
+        A method of searching for several tokens
+        @param query: two or more tokens that are to be searched for
+        """
         if not isinstance(query, str):
             raise TypeError        
         if query == "":
@@ -129,14 +177,18 @@ class SearchEngine(object):
                 final_result[file] = final_result.setdefault(file, []) + result[file]
         return final_result
 
-    def get_window(self, input_dict, context_size=3):
-        
+    def get_window(self, input_dict, context_size):
+        """
+        This method creates a dictionary of files and contexts
+        @param input_dict: a dictionary of files and positions
+        @param context_size: size of the output context windows
+        """      
         if not (isinstance(input_dict, dict) and
                 isinstance(context_size, int)):
             raise ValueError
 
         contexts_dict = {}
-        for f, positions in input_dict.items(): 
+        for f, positions in input_dict.items():
             for position in positions:
                 context = ContextWindow.get_from_file(f, position, context_size)
                 contexts_dict.setdefault(f, []).append(context)
@@ -146,7 +198,10 @@ class SearchEngine(object):
         return joined_contexts_dict
     
     def join_windows(self, input_dict):
-        
+        """
+        Combine overlapping windows in a dictionary of files and context windows
+        @param input_dict: a dictionary to combine
+        """       
         contexts_dict = {}
         null_cont = ContextWindow([], "", 0, 0)
         for f, contexts in input_dict.items():
@@ -163,19 +218,24 @@ class SearchEngine(object):
         return contexts_dict
 
     def search_to_context(self, query, context_size):
-
+        """
+        Searching for a query word. The result is a context window of a certain size
+        with the query word in the middle
+        """
         positions_dict = self.multiple_tokens_search(query)
         context_dict = self.get_window(positions_dict, context_size)
         return context_dict
 
 
     def search_to_sentence(self, query, context_size):
-
+        """
+        This method is similar to the previous one, but now contexts windows are full sentences
+        """
         context_dict = self.search_to_context(query, context_size)
         for contexts in context_dict.values():
             for context in contexts:
-                context.to_sentence()
-        sentence_dict = self.join_contexts(context_dict)
+                context.expand_context()
+        sentence_dict = self.join_windows(context_dict)
         return sentence_dict
 
     def closeDatabase(self):
