@@ -86,19 +86,20 @@ class ContextWindow(object):
         """
         Expanding the boundaries of the context window to a sentence
         """
-        
         first = re.compile(r'[.!?]\s[A-ZА-Яa-zа-я]')
-        last = re.compile(r'[A-ZА-Яa-zа-я][.!?]\s')
-
+        last = re.compile(r'[A-ZА-Яa-zа-я]\s[.!?]')
         right = self.line[self.end:]
-        left = self.line[:self.beginning+1:-1]
-        
-        last_obj = last.match(left) 
-        first_obj = first.match(right) 
-        if left and last_obj: 
-            self.beginning -= last_obj.start()
-        if right and first_obj: 
-            self.end += first_obj.start() + 1
+        left = self.line[:self.beginning+1][::-1]    
+        if left:
+            try:
+                self.beginning = self.beginning - last.search(left).start()
+            except:
+                pass
+        if right:
+            try:
+                self.end += first.search(right).start() + 1
+            except:
+                pass
 
     def __eq__(self, con):
         """
