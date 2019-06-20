@@ -8,23 +8,15 @@ from tokenizator_generator_krupina import Tokenizer
 
 class ContextWindow(object):
     """
-
     This class stores information about context windows
-
     """
     def __init__(self, positions, line, beginning, end):
         """
-
         This method creates an instance of ContextWindow class
-
         @param position: a list of positions of the words we search for
-
         @param line: the text of the line with the word
-
         @param start: position of the first character of the context window
-
         @param end: position after the last character of the context window
-
         """
         self.positions = positions
         self.line = line
@@ -34,17 +26,12 @@ class ContextWindow(object):
     @classmethod
     def get_from_file(cls, filename, position, context_size=3):
         """
-
         This method yields contexts from a file 
-
         @param filename: the name of the file we are working with
-
         @param position: position of the word which contexts we are trying to find 
-
         @param context_size: size of the context window
-
         """
-
+        
         if not (isinstance(filename, str)
                 and isinstance(position, Position_with_lines)
                 and isinstance(context_size, int)):
