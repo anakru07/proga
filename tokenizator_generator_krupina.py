@@ -1,8 +1,10 @@
 """This tokenizer is meant to find tokens in the text given.
 
 Token is a word which in this case means a sequence of alphabetical symbols.
+
 """
 from unicodedata import category
+
 
 class Token(object):
     """Define a class Token which is going to contain all the tokens we are about to find."""
@@ -15,6 +17,7 @@ class Token(object):
         """
         self.position = position
         self.word = word
+
 
 class TypeToken(object):
     
@@ -29,7 +32,8 @@ class TypeToken(object):
         self.position = position
         self.word = word
         self.typ = typ
-        
+
+
 class Tokenizer(object):
     """Create a class which contains a function of tokenizing."""
     
@@ -121,7 +125,7 @@ class Tokenizer(object):
         :param given: a sequence of alphabetical and non-alphabetical symbols.
         :return: a list of tokens.
         """
-
+        token = TypeToken(None, None, None)
         p_token_type = ""
         index = 0
         for i, c in enumerate(given):
@@ -142,9 +146,10 @@ class Tokenizer(object):
             if (token.typ == 'a') or (token.typ == 'd'):
                 yield token
 
+
 if __name__ == '__main__':
 
-    given = "cew r 2r 2 2 rwr44f4fyuvyk"
+    given = "Привет, я нормальное предложение"
 
     words = Tokenizer().tokenize(given)  # Apply our function of tokenizing to a text given
 
