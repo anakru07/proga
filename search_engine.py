@@ -7,16 +7,17 @@ from tokenizator_generator_krupina import Tokenizer
 
 
 class ContextWindow(object):
-    """
-    This class stores information about context windows
+    """This class stores information about context windows
+
     """
     def __init__(self, positions, line, beginning, end):
-        """
-        This method creates an instance of ContextWindow class
-        @param position: a list of positions of the words we search for
+        """This method creates an instance of ContextWindow class
+
+        @param positions: a list of positions of the words we search for
         @param line: the text of the line with the word
-        @param start: position of the first character of the context window
+        @param beginning: position of the first character of the context window
         @param end: position after the last character of the context window
+
         """
         self.positions = positions
         self.line = line
@@ -25,13 +26,13 @@ class ContextWindow(object):
         
     @classmethod
     def get_from_file(cls, filename, position, context_size=3):
-        """
-        This method yields contexts from a file 
+        """This method yields contexts from a file
+
         @param filename: the name of the file we are working with
         @param position: position of the word which contexts we are trying to find 
         @param context_size: size of the context window
+
         """
-        
         if not (isinstance(filename, str)
                 and isinstance(position, Position_with_lines)
                 and isinstance(context_size, int)):
@@ -47,21 +48,26 @@ class ContextWindow(object):
         line = line.strip("\n")
         positions = [position]
 
-        right = line[position.end:]
-        left = line[:position.beginning]
+        tokenizer_1 = Tokenizer()
 
-        sum_len_left = sum(map(len, left.split()[-context_size:])) + context_size
-        sum_len_right = sum(map(len, right.split()[:context_size])) + context_size
+        right = [token.word for i, token in enumerate(tokenizer_1.generate_alpha_and_digits(line[position.end:])) if i < context_size]
+        left = [token.word for i, token in enumerate(tokenizer_1.generate_alpha_and_digits(line[:position.beginning][::-1])) if i < context_size]
 
+        sum_len_left, sum_len_right = context_size + 1, context_size + 1
+        for word in left[-context_size:]:
+            sum_len_left += len(word)
+        for word in right[:context_size]:
+            sum_len_right += len(word)
+            
         beginning = max(0, position.beginning - sum_len_left)
         end = min(len(line), position.end + sum_len_right)
         return cls(positions, line, beginning, end)
 
     def check_crossing(self, con):
-        """
-        This method is meant to find if there is any overlapping of
-        the context windows
+        """This method is meant to find if there is any overlapping of the context windows
+
         @param con: the context we are checking
+
         """
         return (self.beginning <= con.end and
                 self.end >= con.beginning and
@@ -79,10 +85,9 @@ class ContextWindow(object):
         self.end = max(self.end, con.end)
 
     def expand_context(self):
-        """
-        Expanding the boundaries of the context window to a sentence
-        """
+        """Expanding the boundaries of the context window to a sentence
 
+        """
         end_sent = re.compile(r'[.!?]\s[A-ZА-Яa-zа-я]')
         right = self.line[self.positions[0].end:]
         left = self.line[:self.positions[0].beginning]
@@ -101,8 +106,8 @@ class ContextWindow(object):
                 self.end = len(self.line)
 
     def highlight(self):
-        """
-        Highlights query words in the output
+        """Highlights query words in the output
+
         """
         highlighted = self.line[self.beginning:self.end]
         for pos in self.positions[::-1]:
@@ -113,9 +118,10 @@ class ContextWindow(object):
         return highlighted
 
     def __eq__(self, con):
-        """
-        Checking if two context windows are equal
+        """Checking if two context windows are equal
+
         @param con: the context window to compare
+
         """
         return ((self.positions == con.position) and
                 (self.line == con.line) and
@@ -127,21 +133,22 @@ class ContextWindow(object):
 
 
 class SearchEngine(object):
+    """Searching engine for finding certain tokens or groups of tokens in a database
+
     """
-    A search engine for finding certain tokens or groups of tokens in a database
-    """
-    
-    def __init__(self, databasename):
+    def __init__(self, database):
+        """Creates an instance of the class SearchEngine
+
+        @param database: the name of the database that is going to be used for searching in it
+
         """
-        Creates an instance of the class SearchEngine
-        @param databasename: the name of the database that is going to be used for searching in it
-        """
-        self.database = shelve.open(databasename, writeback=True)
+        self.database = shelve.open(database, writeback=True)
 
     def single_token_search(self, query):
-        """
-        A method of searching for only one token
+        """A method of searching for only one token
+
         @param query: the word that is to be searched for
+
         """        
         if not isinstance(query, str):
             raise TypeError        
@@ -152,9 +159,10 @@ class SearchEngine(object):
         return self.database[query]
 
     def multiple_tokens_search(self, query):
-        """
-        A method of searching for several tokens
+        """A method of searching for several tokens
+
         @param query: two or more tokens that are to be searched for
+
         """
         if not isinstance(query, str):
             raise TypeError        
@@ -177,10 +185,11 @@ class SearchEngine(object):
         return final_result
 
     def get_window(self, input_dict, context_size):
-        """
-        This method creates a dictionary of files and contexts
+        """This method creates a dictionary of files and contexts
+
         @param input_dict: a dictionary of files and positions
         @param context_size: size of the output context windows
+
         """      
         if not (isinstance(input_dict, dict) and
                 isinstance(context_size, int)):
@@ -195,11 +204,12 @@ class SearchEngine(object):
         joined_contexts_dict = self.join_windows(contexts_dict)
         
         return joined_contexts_dict
-    
+
     def join_windows(self, input_dict):
-        """
-        Combine overlapping windows in a dictionary of files and context windows
+        """Combine overlapping windows in a dictionary of files and context windows
+
         @param input_dict: a dictionary to combine
+
         """       
         contexts_dict = {}
         null_cont = ContextWindow([], "", 0, 0)
@@ -217,17 +227,17 @@ class SearchEngine(object):
         return contexts_dict
 
     def search_to_context(self, query, context_size):
-        """
-        Searching for a query word. The result is a context window of a certain size
-        with the query word in the middle
+        """Searching for a query word. The result is a context window of a certain size with
+        the query word in the middle
+
         """
         positions_dict = self.multiple_tokens_search(query)
         context_dict = self.get_window(positions_dict, context_size)
         return context_dict
 
     def search_to_sentence(self, query, context_size):
-        """
-        This method is similar to the previous one, but now contexts windows are full sentences
+        """This method is similar to the previous one, but now contexts windows are full sentences
+
         """
         context_dict = self.search_to_context(query, context_size)
         sentence_dict = self.join_windows(context_dict)
@@ -250,9 +260,9 @@ class SearchEngine(object):
     def close_database(self):
         self.database.close()
         for filename in os.listdir(os.getcwd()):
-            if (filename.startswith('database.')):
+            if filename.startswith('database.'):
                 os.remove(filename)
-            if (filename.startswith('text')):
+            if filename.startswith('text'):
                 os.remove(filename)
 
 
@@ -267,13 +277,14 @@ def main():
 
     indexing.indexing_with_lines('text.txt')
     searching = SearchEngine('database')
-    result = searching.search_to_highlight('зал вовсе')
+    result = searching.search_to_highlight('Огромный первом')
     print(result)
 
     del searching
     for filename in os.listdir(os.getcwd()):
         if filename == 'database' or filename.startswith('database.'):
             os.remove(filename)
-            
+
+
 if __name__=='__main__':
     main()
