@@ -16,11 +16,8 @@ database = {'this': {'test1.txt': [Position_with_lines(0, 4, 0)]},
             'engine': {'test2.txt': [(26, 32)]}
             }
 
-
 test1 = 'this is my testing ground'
-test2 = 'testing ground for search engine'
-test3 = 'Attention! I am a test!'
-
+test2 = 'Testing ground for search engine.'
 
 class TestSearchEngine(unittest.TestCase):
     def setUp(self):
@@ -53,8 +50,13 @@ class TestSearchEngine(unittest.TestCase):
 
     def test_to_sentence(self):
         result = self.engine.search_to_sentence('search')
-        self.assertEqual(result, {'test2.txt': ['testing ground for search engine']})
-    
+        self.assertEqual(result, {'test2.txt': ['Testing ground for search engine.']})
+
+    def tearDown(self):
+        if 'test1.txt' in os.listdir(os.getcwd()):
+            os.remove('test1.txt')
+        if 'test2.txt' in os.listdir(os.getcwd()):
+            os.remove('test2.txt')    
 
 class TestContextWindow(unittest.TestCase):
 
@@ -75,15 +77,15 @@ class TestContextWindow(unittest.TestCase):
     def test_simple(self):
         result = ContextWindow.get_from_file("test1.txt", Position_with_lines(8, 10, 0), 1)
         self.assertEqual(result.positions, [Position_with_lines(8, 10, 0)])
-        self.assertEqual(result.beginning, 5)
-        self.assertEqual(result.end, 18)
+        self.assertEqual(result.beginning, 4)
+        self.assertEqual(result.end, 19)
         self.assertEqual(result.line, test1)
 
     def test_cross_sentence_boundary(self):
         result = ContextWindow.get_from_file("test1.txt", Position_with_lines(5, 7, 0), 2)
         self.assertEqual(result.positions, [Position_with_lines(5, 7, 0)])
         self.assertEqual(result.beginning, 0)
-        self.assertEqual(result.end, 18)
+        self.assertEqual(result.end, 19)
         self.assertEqual(result.line, test1)
 
     def test_join_contexts(self):    
