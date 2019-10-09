@@ -58,7 +58,10 @@ class ContextWindow(object):
             sum_len_left += len(word)
         for word in right[:context_size]:
             sum_len_right += len(word)
-            
+
+        # sum_len_left = sum(map(len, left.split()[-context_size:])) + context_size
+        # sum_len_right = sum(map(len, right.split()[:context_size])) + context_size
+
         beginning = max(0, position.beginning - sum_len_left)
         end = min(len(line), position.end + sum_len_right)
         return cls(positions, line, beginning, end)
@@ -89,19 +92,22 @@ class ContextWindow(object):
 
         """
         end_sent = re.compile(r'[.!?]\s[A-ZА-Яa-zа-я]')
-        right = self.line[self.positions[0].end:]
-        left = self.line[:self.positions[0].beginning]
+        beg_sent = re.compile(r'[A-ZА-Яa-zа-я]\s[.!?]')
+        max_right = max([pos.end for pos in self.positions])
+        min_left = min([pos.beginning for pos in self.positions])
+        right = self.line[max_right:]
+        left = self.line[::-1][-min_left:]
         first_obj = end_sent.search(right)
-        last_obj = end_sent.search(left)
+        last_obj = beg_sent.search(left)
 
         if left:
             if last_obj:
-                self.beginning = last_obj.end()-1
+                self.beginning = len(left) - last_obj.end() + 2
             else:
                 self.beginning = 0
         if right:
             if first_obj:
-                self.end = self.positions[0].end + first_obj.start() + 1
+                self.end = max_right + first_obj.start() + 1
             else:
                 self.end = len(self.line)
 
@@ -184,7 +190,7 @@ class SearchEngine(object):
                 final_result[file] = final_result.setdefault(file, []) + result[file]
         return final_result
 
-    def get_window(self, input_dict, context_size):
+    def get_window(self, input_dict, context_size=3):
         """This method creates a dictionary of files and contexts
 
         @param input_dict: a dictionary of files and positions
@@ -226,7 +232,7 @@ class SearchEngine(object):
 
         return contexts_dict
 
-    def search_to_context(self, query, context_size):
+    def search_to_context(self, query, context_size=3):
         """Searching for a query word. The result is a context window of a certain size with
         the query word in the middle
 
@@ -235,22 +241,22 @@ class SearchEngine(object):
         context_dict = self.get_window(positions_dict, context_size)
         return context_dict
 
-    def search_to_sentence(self, query, context_size):
+    def search_to_sentence(self, query, context_size=3):
         """This method is similar to the previous one, but now contexts windows are full sentences
 
         """
         context_dict = self.search_to_context(query, context_size)
-        sentence_dict = self.join_windows(context_dict)
         for contexts in context_dict.values():
             for context in contexts:
                 context.expand_context()
+        sentence_dict = self.join_windows(context_dict)
         return sentence_dict
 
-    def search_to_highlight(self, query, size=3):
+    def search_to_highlight(self, query, context_size=3):
         """
-        Also searching in the database, but in the result query words are highlighted
+        Also searching in the database, but in the result the query words are highlighted
         """
-        sentence_dict = self.search_to_context(query, context_size=3)
+        sentence_dict = self.search_to_context(query, context_size)
         quote_dict = {}
         for f, conts in sentence_dict.items():
             for cont in conts:
@@ -270,14 +276,14 @@ def main():
     indexing = indexer.Indexer('database')
     with open('text.txt', 'w') as test_file_1:
         test_file_1.write('Огромный зал на первом этаже обращен окнами на север, точно художественная студия. '
-                          'На дворе лето, в зале и вовсе тропически жарко, но по-зимнему холоден и водянист свет, '
+                          'На дворе лето, в зале и вовсе тропически жарко. Но по-зимнему холоден и водянист свет, '
                           'что жадно течет в эти окна в поисках живописно драпированных манекенов или нагой натуры, '
                           'пусть блеклой и зябко-пупырчатой, – и находит лишь никель, стекло, холодно блестящий фарфор '
                           'лаборатории')
 
     indexing.indexing_with_lines('text.txt')
     searching = SearchEngine('database')
-    result = searching.search_to_highlight('Огромный первом')
+    result = searching.search_to_sentence('студия дворе фарфор')
     print(result)
 
     del searching
