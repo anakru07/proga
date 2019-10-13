@@ -10,14 +10,14 @@ database = {'this': {'test1.txt': [Position_with_lines(0, 4, 0)]},
             'testing': {'test1.txt': [Position_with_lines(11, 18, 0)],
                         'test2.txt': [Position_with_lines(0, 7, 0)]},
             'ground': {'test1.txt': [Position_with_lines(19, 24, 0)],
-                       'test2.txt': [Position_with_lines(8,14,0)]},
+                       'test2.txt': [Position_with_lines(8, 14, 0)]},
             'for': {'test2.txt': [(15, 18)]},
             'search': {'test2.txt': [(19, 25)]},
-            'engine': {'test2.txt': [(26, 32)]}
+            'Engine': {'test2.txt': [(27, 33)]}
             }
 
 test1 = 'this is my testing ground'
-test2 = 'Testing ground for search engine.'
+test2 = 'testing ground for search. Engine'
 
 class TestSearchEngine(unittest.TestCase):
     def setUp(self):
@@ -47,11 +47,7 @@ class TestSearchEngine(unittest.TestCase):
         result = self.engine.multiple_tokens_search('testing ground')
         self.assertEqual(result, {'test1.txt': [Position_with_lines(11, 18, 0), Position_with_lines(19, 24, 0)],
                                   'test2.txt': [Position_with_lines(0, 7, 0), Position_with_lines(8, 14, 0)]})
-
-    def test_to_sentence(self):
-        result = self.engine.search_to_sentence('search')
-        self.assertEqual(result, {'test2.txt': ['Testing ground for search engine.']})
-
+   
     def tearDown(self):
         if 'test1.txt' in os.listdir(os.getcwd()):
             os.remove('test1.txt')
@@ -96,7 +92,19 @@ class TestContextWindow(unittest.TestCase):
         self.assertEqual(result2.end, self.con.end)
         self.assertEqual(result1.line, self.con.line)
         os.remove('test1.txt')
-    
+
+    def test_expand_context(self):
+        query = ContextWindow.get_from_file("test2.txt", Position_with_lines(0, 7, 0), 2)
+        query.expand_context()
+        text = 'testing ground for search.'
+        self.assertEqual(str(query), text)
+
+    def test_highlight(self):
+        query = ContextWindow.get_from_file("test1.txt", Position_with_lines(5, 7, 0), 1)
+        query = query.highlight()
+        text = 'this <B>is</B> my '
+        self.assertEqual(str(query), text)
+
     def tearDown(self):
         if 'test1.txt' in os.listdir(os.getcwd()):
             os.remove('test1.txt')
