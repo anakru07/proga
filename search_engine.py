@@ -96,7 +96,7 @@ class ContextWindow(object):
         max_right = max([pos.end for pos in self.positions])
         min_left = min([pos.beginning for pos in self.positions])
         right = self.line[max_right:]
-        left = self.line[::-1][-min_left:]
+        left = self.line[::-1][-min_left:] if min_left !=0 else ''
         first_obj = end_sent.search(right)
         last_obj = beg_sent.search(left)
 
