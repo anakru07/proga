@@ -58,10 +58,7 @@ class ContextWindow(object):
             sum_len_left += len(word)
         for word in right[:context_size]:
             sum_len_right += len(word)
-
-        # sum_len_left = sum(map(len, left.split()[-context_size:])) + context_size
-        # sum_len_right = sum(map(len, right.split()[:context_size])) + context_size
-
+        
         beginning = max(0, position.beginning - sum_len_left)
         end = min(len(line), position.end + sum_len_right)
         return cls(positions, line, beginning, end)
