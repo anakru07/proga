@@ -40,7 +40,7 @@ class RequestHandler(http.BaseHTTPRequestHandler):
             <html>
                 <body>
                     <form method = 'post'>
-                        <input type = 'text' name = 'query' value = '{0}.format(query)>
+                        <input type = 'text' name = 'query' value = ''' + query + '''>
                         <input type = 'submit'>
                     </form>
                 </body>
@@ -60,7 +60,6 @@ class RequestHandler(http.BaseHTTPRequestHandler):
                 answer_ord_list += '<li> <p> ' + str(cur_cit) + ' </p> </li> '
             answer_ord_list += '</ul> '
         answer_ord_list += '</ol>'
-        print(answer_ord_list)
         return answer_ord_list
 
 
