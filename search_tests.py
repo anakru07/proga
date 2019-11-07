@@ -92,12 +92,36 @@ class TestContextWindow(unittest.TestCase):
         self.assertEqual(result2.end, self.con.end)
         self.assertEqual(result1.line, self.con.line)
         os.remove('test1.txt')
+    
+    def test_join_contexts_sent_bound(self):
+        result1 = ContextWindow.get_from_file("test2.txt", Position_with_lines(15, 18, 0), 1)
+        result2 = ContextWindow.get_from_file("test2.txt", Position_with_lines(27, 33, 0), 1)
+        self.con = ContextWindow([Position_with_lines(15, 18, 0), Position_with_lines(27, 33, 0)], 'testing ground for search. Engine blah bla', 7, 39)
+        self.assertEqual(result1.beginning, self.con.beginning)
+        self.assertEqual(result2.end, self.con.end)
+        self.assertEqual(result1.line, self.con.line)
+        os.remove('test2.txt')
+
+    def test_join_contexts_sent_bound2(self):
+        result1 = ContextWindow.get_from_file("test2.txt", Position_with_lines(15, 18, 0), 1)
+        result2 = ContextWindow.get_from_file("test2.txt", Position_with_lines(34, 38, 0), 1)
+        self.con = ContextWindow([Position_with_lines(15, 18, 0), Position_with_lines(34, 38, 0)], 'testing ground for search. Engine blah bla', 7, 42)
+        self.assertEqual(result1.beginning, self.con.beginning)
+        self.assertEqual(result2.end, self.con.end)
+        self.assertEqual(result1.line, self.con.line)
+        os.remove('test2.txt')
 
     def test_expand_context(self):
         query = ContextWindow.get_from_file("test2.txt", Position_with_lines(0, 7, 0), 2)
         query.expand_context()
         text = 'testing ground for search.'
         self.assertEqual(str(query), text)
+            
+    def test_expand_contexts_sent_bound1(self):
+        result = ContextWindow.get_from_file("test2.txt", Position_with_lines(19, 25, 0), 2)
+        result.expand_context()
+        text = 'testing ground for search.'
+        self.assertEqual(str(result), text)
 
     def test_highlight(self):
         query = ContextWindow.get_from_file("test1.txt", Position_with_lines(5, 7, 0), 1)
