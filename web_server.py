@@ -64,7 +64,7 @@ class RequestHandler(http.BaseHTTPRequestHandler):
 
 
 def main():
-    server = http.HTTPServer(('localhost', 80), RequestHandler)
+    server = http.HTTPServer(('localhost', 8000), RequestHandler)
     server.serve_forever()
 
 
