@@ -270,23 +270,22 @@ class SearchEngine(object):
 
 
 def main():
+##    texts = ['tolstoy1.txt', 'tolstoy2.txt', 'tolstoy3.txt', 'tolstoy4.txt']
+##    databases = ['database' + str(i) for i in range(4)]
+##    indexings, results = [], []
+##    for i in range(4):
+##        indexings.append(indexer.Indexer(databases[i]))
+##        indexings[i].indexing_with_lines(texts[i])
+##        results.append(SearchEngine(databases[i]).search_to_sentence(input('Введите слово')))
+##    for result in results:
+##        print(result)
     indexing = indexer.Indexer('database')
-    with open('text.txt', 'w') as test_file_1:
-        test_file_1.write('Огромный зал на первом этаже обращен окнами на север, точно художественная студия. '
-                          'На дворе лето, в зале и вовсе тропически жарко. Но по-зимнему холоден и водянист свет, '
-                          'что жадно течет в эти окна в поисках живописно драпированных манекенов или нагой натуры, '
-                          'пусть блеклой и зябко-пупырчатой, – и находит лишь никель, стекло, холодно блестящий фарфор '
-                          'лаборатории')
 
     indexing.indexing_with_lines('text.txt')
     searching = SearchEngine('database')
-    result = searching.search_to_sentence('студия дворе фарфор')
+    result = searching.search_to_sentence('туманы')
     print(result)
-
     del searching
-    for filename in os.listdir(os.getcwd()):
-        if filename == 'database' or filename.startswith('database.'):
-            os.remove(filename)
 
 
 if __name__=='__main__':
